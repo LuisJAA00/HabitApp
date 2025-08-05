@@ -22,7 +22,10 @@ This is the core of the app. Users can schedule habits in different ways: **dail
 2. **# times per week** – Habits that need to be done a certain number of times per week, like *walk the dog 3 times a week*.  
 3. **Selected days** – Habits scheduled for specific days, like *take medication on Mondays and Thursdays*.
 
-![Habitos registrados](imagenes/Captura de pantalla_20250805_133424.png)
+![Habitos registrados](imagenes/registrados.png)
+
+![Habitos agregar seleccionados](imagenes/addSel.png)
+![Habitos agregar diario](imagenes/addDia.png)
 ---
 
 ## 🔊 Sounds Section
