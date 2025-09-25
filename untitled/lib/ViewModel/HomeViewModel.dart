@@ -47,12 +47,8 @@ class HomeViewModel extends ChangeNotifier {
 
     for (final habit in DBHelper.instance.getAllHabits()) {
     
-   
-      
 
       final isDoneToday = habit.lastDateDone.day == ahora.day; // CHECAR
-      print("checando habitos para mostrar");
-      print("${habit.name} tiene fecha ultima ${habit.lastDateDone.day} y hoy es $ahora");
       if (habit.frecuency == "diario") {
         if (isDoneToday) {
           _yaRealizados.add(habit);

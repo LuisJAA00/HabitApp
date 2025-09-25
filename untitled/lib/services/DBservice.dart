@@ -1,9 +1,8 @@
 import 'package:hive/hive.dart';
-import 'package:untitled/model/HabitSeleccionados.dart';
+
 import 'package:untitled/model/hiveObjects/Habit.dart';
 import 'package:untitled/model/HabitBase.dart';
-import 'package:untitled/model/HabitDiario.dart';
-import 'package:untitled/model/HabitPorSemana.dart';
+
 
 import 'package:untitled/model/hiveObjects/NoTimeNotificationDays.dart';
 
@@ -58,18 +57,12 @@ NoTimeNotificationDays? getNotificationDays() {
 }
 
 List<Habitbase> getAllHabits() {
+  
   return habitBox.values.map((h) {
-    switch (h.frecuency) {
-      case "diario":
-        return HabitDiario(h);
-      case "xPorSemana":
-        return HabitPorSemana(h);
-      case "diasEspecificos":
-        return HabitSeleccionados(h);
-      default:
-        throw Exception("Tipo de frecuencia no reconocida: ${h.frecuency}");
-    }
+    return Habitbase(h);
   }).toList();
+  
+  
 }
 
 }

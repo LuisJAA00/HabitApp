@@ -3,7 +3,7 @@ import 'package:untitled/model/hiveObjects/Habit.dart';
 import 'package:untitled/model/hiveObjects/HabitProgress.dart';
 import 'package:untitled/model/hiveObjects/ReminderSettings.dart';
 
-abstract class Habitbase {
+class Habitbase {
 
   Habit habit;
   String get name => habit.name;
