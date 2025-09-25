@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled/componentes/HabitCard.dart';
-import 'package:untitled/model/Habit.dart';
+import 'package:untitled/model/HabitBase.dart';
 import '../l10n/app_localizations.dart';
 import '../ViewModel/HomeViewModel.dart';
 class Home extends StatelessWidget {
   const Home({super.key});
 
-  Widget buildHabitCard(BuildContext context, Habit habit, {bool isDone = false}) {
+  Widget buildHabitCard(BuildContext context, Habitbase habit, {bool isDone = false}) {
     final viewModel = Provider.of<HomeViewModel>(context, listen: false);
 
     return Habitcard(

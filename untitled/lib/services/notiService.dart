@@ -1,20 +1,21 @@
+
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:untitled/constants/constants.dart';
-import 'package:untitled/model/Habit.dart';
+import 'package:untitled/model/hiveObjects/Habit.dart';
 
-class NotificationApi {
+class Notiservice {
   // Singleton: instancia única
-  static final NotificationApi instance = NotificationApi._internal();
+  static final Notiservice instance = Notiservice._internal();
 
   // Plugin de notificaciones
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   // Constructor privado
-  NotificationApi._internal();
+  Notiservice._internal();
 FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
     _notificationsPlugin;
 
@@ -61,10 +62,35 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
     );
   }
 
+  void cancelNext(Habit habit) async
+  {
+    print("cancelando el siguiente");
+    DateTime now = DateTime.now();
+    Map map = habit.reminder!.notificacioens;
+
+    for (DateTime k in List.from(map.keys)) {
+      print("current k");
+      print(k);
+      if (k.isBefore(now)) {
+      // eliminar notificaciones pasadas
+      
+      map.remove(k);
+      } else if (k.year == now.year &&
+             k.month == now.month &&
+             k.day == now.day &&
+             k.isAfter(now)) {
+      // eliminar la próxima notificación de hoy
+        cancelNotification(map[k]);
+        map.remove(k);
+        break; // solo eliminamos una
+      }
+    }
+  }
+
   Future<void> cancel({required habit, required hour, required minute}) async {
     switch (habit.reminder.reminderFrec) {
       case 'diario':
-        _cancelDiario(habit, hour, minute);
+        
         break;
       case 'xPorSemana':
         break;
@@ -74,104 +100,9 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
     }
   }
 
-  Future<void> CancelNext({required habit, required hour, required minute}) async
-  {
-    
-    
-    switch (habit.reminder.reminderFrec) {
-      case 'diario':
-        _cancelNextDiario(habit, hour, minute);
-        break;
-      case 'xPorSemana':
-        break;
-      case 'diasEspecificos':
-        _cancelNextSeleccionado(habit, hour, minute);
-        break;
-    }
-
-  }
-
-  void _cancelNextDiario(habit, hour, minute) async
-  {
-    //cada id es generado respecto a la fecha y hora, este metodo solo se llama si es antes de la hora programada
-    //como es diario y se llama solo si es antes de la siguiente noti, entonces cancelamos notificacion de hoy
-
-    //id de notificacion de hoy = genID( fecha hoy )
-
-    final key = habit.key;
-    final scheduledDay = DateTime.now();
-
-    final scheduledTime = tz.TZDateTime(
-        tz.local,
-        scheduledDay.year,
-        scheduledDay.month,
-        scheduledDay.day,
-        hour,
-        minute,
-        0,
-    );
-
-    final notiID = genId(key, scheduledTime);
-    print("eliminando $notiID");
-
-    await _notificationsPlugin.cancel(notiID);
-
-  }
-
-  void _cancelNextSeleccionado(habit, hour, minute) async
-  {
-
-    final key = habit.key;
-    final scheduledDay = DateTime.now();
-
-    final diaSemana = scheduledDay.weekday - 1 ;
-
-    if(habit.progress.daysTodoHabit[diaSemana] != 1)
-    {
-      return;
-    }
-
-    final scheduledTime = tz.TZDateTime(
-        tz.local,
-        scheduledDay.year,
-        scheduledDay.month,
-        scheduledDay.day,
-        hour,
-        minute,
-        0,
-    );
-
-    final notiID = genId(key, scheduledTime);
-
-    await _notificationsPlugin.cancel(notiID);
-  }
-
-  void _cancelDiario(habit, hour, minute) async {
-    final key = habit.key;
-
-    for (
-      int i = 0;
-      i < 31 - DateTime.now().difference(habit.progress.date).inDays;
-      i++
-    ) { 
-
-
-      final scheduledDay = DateTime.now().add(Duration(days: i));
-
-      final scheduledTime = tz.TZDateTime(
-        tz.local,
-        scheduledDay.year,
-        scheduledDay.month,
-        scheduledDay.day,
-        hour,
-        minute,
-        0,
-      );
-
-      final id = genId(key,scheduledTime);
-
+  Future<void> cancelNotification(int id )
+  async{
       await _notificationsPlugin.cancel(id);
-    }
   }
 
   void _cancelSeleccionados(habit, hour, minute) async {
@@ -245,7 +176,7 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
   final minStr = dateTime.minute.toString().padLeft(2, '0');
 
 
-  final idStr = '$hourStr$minStr$keyStr$dayStr';
+  final idStr = '$hourStr$minStr$dayStr$keyStr';
 
   return int.parse(idStr); // ejemplo: 07171345
   

@@ -3,14 +3,14 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled/ViewModel/AddViewModel.dart';
 import 'package:untitled/ViewModel/HomeViewModel.dart';
-import 'package:untitled/model/DBHelper.dart';
-import 'package:untitled/model/HabitProgress.dart';
+import 'package:untitled/services/DBservice.dart';
+import 'package:untitled/model/hiveObjects/HabitProgress.dart';
 
-import 'package:untitled/model/ReminderSettings.dart';
+import 'package:untitled/model/hiveObjects/ReminderSettings.dart';
 
 import 'app.dart';
-import './model/Habit.dart';
-import 'model/HabitService.dart';
+import 'model/hiveObjects/Habit.dart';
+
 
 //para
 
@@ -27,7 +27,7 @@ void main() async {
   Hive.registerAdapter(ReminderSettingsAdapter());
 
 
-  await Hive.openBox<Habit>("test3");
+  await Hive.openBox<Habit>("test6");
   await DBHelper.instance.init();
 
 
@@ -38,7 +38,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AddViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
-        // otros ViewModels si los hay
+
       ],
       child: const MyApp(), 
     ),);

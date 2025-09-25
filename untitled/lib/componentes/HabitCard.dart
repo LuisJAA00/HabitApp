@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:timezone/timezone.dart';
-import 'package:untitled/componentes/notificationsApi.dart';
-import 'package:untitled/model/Habit.dart';
+
+import 'package:untitled/model/HabitBase.dart';
 import 'HabitButton.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import '../screens/Add.dart';
-import '../screens/HabitDetailPage.dart'; // Asume que creas esta pantalla
+import '../view/HabitDetailPage.dart'; // Asume que creas esta pantalla
 
 class Habitcard extends StatefulWidget {
   final bool isActive;
@@ -14,7 +12,7 @@ class Habitcard extends StatefulWidget {
   final VoidCallback onStart;
   final VoidCallback onPause;
   final VoidCallback onFinish;
-  final Habit habit;
+  final Habitbase habit;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
 
@@ -38,9 +36,14 @@ class Habitcard extends StatefulWidget {
 class _HabitcardState extends State<Habitcard> {
   bool isDone = false;
 
+
   @override
   Widget build(BuildContext context) {
     Widget next2ButtonIcon;
+
+    
+
+
     if (widget.habit.usesTimer) {
       next2ButtonIcon = Container(
         padding: EdgeInsets.all(4),
@@ -98,7 +101,7 @@ class _HabitcardState extends State<Habitcard> {
         ],
       ),
       child: Opacity(
-        opacity: (widget.habit.progress.date.day == DateTime.now().day)
+        opacity: (widget.habit.lastDateDone.day == DateTime.now().day)
             ? 0.4
             : 1.0,
         child: SizedBox(
@@ -145,7 +148,7 @@ class _HabitcardState extends State<Habitcard> {
                           ),
                           Text(
                             (widget.habit.usesTimer)
-                                ? "Minutos hechos: ${widget.habit.progress.minutesCompleted}"
+                                ? "Minutos hechos: ${widget.habit.minutesCompleted}"
                                 : "Veces completado: ${widget.habit.progress.vecesCompletado}",
                             style: const TextStyle(
                               fontSize: 14,

@@ -1,13 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/componentes/BotonApp.dart';
-
-import 'package:untitled/model/Habit.dart';
-import 'package:untitled/model/HabitProgress.dart';
-import 'package:untitled/model/ReminderSettings.dart';
-import 'package:untitled/screens/Progreso.dart';
-import '../componentes/notificationsApi.dart';
-import 'package:timezone/timezone.dart' as tz;
-import '../model/HabitService.dart';
 
 class Sound extends StatefulWidget {
   const Sound({super.key});

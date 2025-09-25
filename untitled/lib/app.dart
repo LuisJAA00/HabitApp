@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/screens/Progreso.dart';
-import 'screens/Add.dart';
+import 'package:untitled/view/Progreso.dart';
+import 'view/Add.dart';
 import 'componentes/NavigationController.dart';
-import 'screens/Home.dart';
-import 'screens/Sound.dart';
-import 'componentes/notificationsApi.dart';
+import 'view/Home.dart';
+import 'view/Sound.dart';
+import 'services/notiService.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import './l10n/app_localizations.dart';
@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    NotificationApi.instance.init();
+    Notiservice.instance.init();
     NavigationController.tabIndex.addListener(() {
       setState(() {
         _selectedIndex = NavigationController.tabIndex.value;

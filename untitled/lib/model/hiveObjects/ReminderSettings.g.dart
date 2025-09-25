@@ -17,25 +17,22 @@ class ReminderSettingsAdapter extends TypeAdapter<ReminderSettings> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ReminderSettings(
-      reminderFrec: fields[0] as String,
-      timesPerWeek: fields[2] as int,
-      time: fields[4] as TimeOfDay?,
-      enable: fields[5] as bool,
+      enable: fields[1] as bool,
+      pers: fields[2] as bool,
+      notificacioens: (fields[0] as Map).cast<DateTime, int>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, ReminderSettings obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.reminderFrec)
+      ..write(obj.notificacioens)
+      ..writeByte(1)
+      ..write(obj.enable)
       ..writeByte(2)
-      ..write(obj.timesPerWeek)
-      ..writeByte(4)
-      ..write(obj.time)
-      ..writeByte(5)
-      ..write(obj.enable);
+      ..write(obj.pers);
   }
 
   @override

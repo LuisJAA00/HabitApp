@@ -1,27 +1,38 @@
+
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:untitled/componentes/notificationsApi.dart';
-import 'package:untitled/model/HabitProgress.dart';
-import 'package:untitled/model/NoTimeHabit.dart';
-import 'package:untitled/model/ReminderSettings.dart';
-import '../model/Habit.dart';
+import 'package:untitled/model/hiveObjects/HabitProgress.dart';
+import 'package:untitled/model/hiveObjects/ReminderSettings.dart';
+import 'package:untitled/repos/DBrepo.dart';
+import 'package:untitled/repos/NotiRepo.dart';
+import '../model/hiveObjects/Habit.dart';
 
 class AddViewModel extends ChangeNotifier {
   final formKey = GlobalKey<FormState>();
-  final Box<Habit> _box = Hive.box<Habit>("test3");
+  /////
+  ///repos
+  NotiRepo notiRepo = new NotiRepo();
+  DBrepo dbRepo = new DBrepo();
+  ///
+  ///
+  ///
+  //////
+  
+
 
   // Estado del formulario
-  String title = '';
+
   bool usesTimer = false;
+  bool persNot = false;
   int goalPerWeek = 1;
   Duration duration = const Duration(minutes: 5);
   String frequency = 'diario';
   List<bool> selectedDays = List.filled(7, false);
   bool isReminderEnable = true;
   bool noSpecificTime = false;
-  TimeOfDay? selectedTime;
+  List<DateTime> selectedTime = [];
+  final titleController = TextEditingController();
+  
   int goalPerDay = 1;
-
   Habit? existingHabit;
 
   void init(Habit? habit) {
@@ -29,7 +40,7 @@ class AddViewModel extends ChangeNotifier {
 
     existingHabit = habit;
 
-    title = habit.name;
+    titleController.text = habit.name;
     usesTimer = habit.usesTimer;
     frequency = habit.frecuency;
 
@@ -46,8 +57,8 @@ class AddViewModel extends ChangeNotifier {
 
     if (reminder != null) {
       isReminderEnable = reminder.enable;
-      noSpecificTime = reminder.time == null;
-      selectedTime = reminder.time;
+      noSpecificTime = false;
+      //selectedTime = reminder.time;
     }
 
     notifyListeners();
@@ -58,43 +69,47 @@ class AddViewModel extends ChangeNotifier {
     final prog = progress();
     final rem = reminder();
 
-    print("fecha de inicio ${prog.date}");
-    print("fecha de inicio2 ${prog.startedAt}");
-    print("notificacioens hora ${rem.time}");
 
-    return Habit(name: this.title, usesTimer: usesTimer, frecuency: this.frequency, progress: prog, reminder: rem);
+    return Habit(name: titleController.text, usesTimer: usesTimer, frecuency: frequency, progress: prog, reminder: rem);
     
   }
-void generateEditHabit(Habit habit){
-  if(habit.reminder?.time != null)
+void generateEditHabit(Habit habit,List<DateTime> horas){
+  if(habit.reminder?.enable == false)//se eliminaron las notificaciones y no se signan nuevas
   {
     deleteHabitNotifications(habit);
   }
-  else
+  else //eliminar las notificaciones viejas y reagendar... //guardar
   {
-    //NoTimeHabit.instance.deleteHabitFromList(habit.key);
-  }
-  
+    deleteHabitNotifications(habit);
+    //dbRepo.saveHabit(habit);
+    dbRepo.updateHabit(habit);
+    notiRepo.agendarNotificaciones(habit,horas);
 
+  }
 
 }
-void deleteHabitNotifications(Habit habit) {
-    final key = habit.key as int?;
 
-    if (key != null) {
-      if (habit.reminder?.time != null) {
-        print("borrando notificaciones");
-        NotificationApi.instance.cancel(
-          habit: habit,
-          hour: habit.reminder!.time!.hour,
-          minute: habit.reminder!.time!.minute,
-        );
-      }
-      else{
-        //NoTimeHabit.instance.deleteNotification(habit);
-      }
-    }
+
+  void deleteHabitNotifications(Habit habit) {
+
+    notiRepo.deleteNotification(habit);
+
   }
+
+  Future<bool> nameInUse(String name)
+  {
+    return dbRepo.nameInUse(name);
+  }
+
+  void saveHabit(Habit habit,List<DateTime> horas)
+  {
+    dbRepo.saveHabit(habit);
+    
+    notiRepo.agendarNotificaciones(habit,horas);
+  }
+
+ 
+
 
   HabitProgress progress()
   {
@@ -108,23 +123,24 @@ void deleteHabitNotifications(Habit habit) {
 
   ReminderSettings reminder()
   {
-return ReminderSettings(reminderFrec: frequency, timesPerWeek: (frequency == "xPorSemana")
-                          ? goalPerWeek
-                          : 0, 
-                          time: (isReminderEnable && !noSpecificTime)
-    ? (selectedTime ?? TimeOfDay.now())
-    : null, enable: isReminderEnable);
+    return ReminderSettings(enable: isReminderEnable, pers: persNot, notificacioens: Map<DateTime, int>());
   }
   
 
 
   void setTitle(String value) {
-    title = value;
+    titleController.text = value;
     notifyListeners();
   }
 
   void toggleUsesTimer(bool value) {
     usesTimer = value;
+    notifyListeners();
+  }
+
+  void togglePersNot(bool value)
+  {
+    persNot = value;
     notifyListeners();
   }
 
@@ -143,7 +159,7 @@ return ReminderSettings(reminderFrec: frequency, timesPerWeek: (frequency == "xP
     notifyListeners();
   }
 
-  void toggleDay(int index) {
+  void toggleDay(int index,[bool diario = false]) {
     selectedDays[index] = !selectedDays[index];
     notifyListeners();
   }
@@ -155,13 +171,27 @@ return ReminderSettings(reminderFrec: frequency, timesPerWeek: (frequency == "xP
 
   void toggleNoSpecificTime(bool value) {
     noSpecificTime = value;
-    if (value) selectedTime = null;
     notifyListeners();
   }
 
-  void setTime(TimeOfDay? time) {
-    selectedTime = time;
+  void setTime(TimeOfDay t) {
+
+    DateTime now = DateTime.now();
+    DateTime dt = DateTime(now.year, now.month, now.day, t.hour, t.minute);
+    
+    
+    selectedTime.add(dt);
     notifyListeners();
+  }
+
+  void deleteNot(DateTime time){
+    selectedTime.remove(time);
+    notifyListeners();
+  }
+
+  List<DateTime> getCurrentNot()
+  {
+    return selectedTime;
   }
 
   void incrementGoalPerDay() {
@@ -176,6 +206,23 @@ return ReminderSettings(reminderFrec: frequency, timesPerWeek: (frequency == "xP
       goalPerDay--;
       notifyListeners();
     }
+  }
+
+  void restartVM()
+  {
+  titleController.clear();
+  usesTimer = false;
+  persNot = false;
+  goalPerWeek = 1;
+  duration = const Duration(minutes: 5);
+  frequency = 'diario';
+  selectedDays = List.filled(7, false);
+  isReminderEnable = true;
+  noSpecificTime = false;
+  selectedTime = [];
+  
+  goalPerDay = 1;
+  notifyListeners();
   }
 
   List<int> get daysAsIntList => selectedDays.map((b) => b ? 1 : 0).toList();

@@ -1,24 +1,36 @@
+
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+
 import 'package:provider/provider.dart';
 import 'package:untitled/componentes/BotonApp.dart';
-import 'package:untitled/componentes/notificationsApi.dart';
+
+import 'package:untitled/componentes/notificationCard.dart';
 import 'package:untitled/l10n/app_localizations.dart';
-import 'package:untitled/model/Habit.dart';
-import 'package:untitled/model/HabitProgress.dart';
-import 'package:untitled/model/HabitService.dart';
-import 'package:untitled/model/ReminderSettings.dart';
+import 'package:untitled/model/hiveObjects/Habit.dart';
+
 import '../ViewModel/AddViewModel.dart';
 
 class Add extends StatelessWidget {
   final Habit? existingHabit;
 
   const Add({super.key, this.existingHabit});
+  
+  Widget buildHabitCard(BuildContext context, String daysText, DateTime time) {
+
+    final vm = Provider.of<AddViewModel>(context);
+
+    return NotificationCard(
+      daysText: daysText, 
+      time: TimeOfDay(hour: time.hour, minute: time.minute), 
+      onDelete: () => vm.deleteNot(time)
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
     final texts = AppLocalizations.of(context)!;
     final vm = Provider.of<AddViewModel>(context);
+
 
     // Solo inicializa si es necesario
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -26,6 +38,10 @@ class Add extends StatelessWidget {
         vm.init(existingHabit);
       }
     });
+
+    //List<Widget> notificationCards = [];
+
+
 
     return Scaffold(
       appBar: AppBar(
@@ -40,9 +56,10 @@ class Add extends StatelessWidget {
           child: ListView(
             children: [
               TextFormField(
+                controller: vm.titleController,
                 decoration: InputDecoration(labelText: texts.habitName),
                 onChanged: vm.setTitle,
-                initialValue: vm.title,
+                //initialValue: vm.title,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "El hábito debe tener nombre";
@@ -78,7 +95,10 @@ class Add extends StatelessWidget {
                     ),
                   ],
                 ),
+
               const SizedBox(height: 30),
+
+
               DropdownButtonFormField<String>(
                 value: vm.frequency,
                 decoration: InputDecoration(labelText: texts.frequency),
@@ -96,6 +116,7 @@ class Add extends StatelessWidget {
                   if (value != null) vm.setFrequency(value);
                 },
               ),
+
               if (vm.frequency == 'diario')
                 Row(
                   children: [
@@ -216,56 +237,90 @@ class Add extends StatelessWidget {
                     );
                   },
                 ),
+
               CheckboxListTile(
                 title: Text(texts.enableReminder),
                 value: vm.isReminderEnable,
                 onChanged: (v) => vm.toggleReminder(v ?? true),
               ),
-              CheckboxListTile(
-                title: Text(texts.noSpecificTime),
-                value: vm.noSpecificTime,
-                onChanged: (v) => vm.toggleNoSpecificTime(v ?? false),
-              ),
-              if (vm.isReminderEnable && !vm.noSpecificTime)
+
+              //if(vm.isReminderEnable)
+              //SwitchListTile(
+              //  title: Text("Noticiaciones personalizadas"),
+              //  value: vm.persNot,
+              //  onChanged: vm.togglePersNot,
+              //),
+              
+
+
+              if (vm.isReminderEnable)
                 BotonApp(
-                  texto: texts.selectHour,
+                  texto: "Agregar notificación",
                   onPressed: () async {
                     final picked = await showTimePicker(
                       context: context,
-                      initialTime: vm.selectedTime ?? TimeOfDay.now(),
+                      initialTime: TimeOfDay.now(),
                     );
-                    if (picked != null) vm.setTime(picked);
+                    if (picked != null) 
+                    {
+                      vm.setTime(picked);
+
+                    }
                   },
                 ),
+
               const SizedBox(height: 40),
+
+             /* Consumer<AddViewModel>(
+                builder: (context, vm, child)
+                {
+                  final times = vm.selectedTime;
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: times.length,
+                    itemBuilder: (context, index) {
+                      final time = times[index];
+                      return Text(time.toString());
+                    },
+                  );
+                }
+                ),
+              */
+
+
+              const SizedBox(height: 40),
+
               BotonApp(
                 texto: texts.save,
                 onPressed: () async {
                   if (!vm.formKey.currentState!.validate()) return;
 
-             
-                  final box = await Hive.openBox<Habit>('test3');
-
                   final habit = vm.toHabit();
 
-                  if (vm.existingHabit != null) {
-                    
-                    final key = existingHabit!.key;
-                    vm.generateEditHabit(existingHabit!);
-
-                    await box.put(key, habit);
-
-                    programarRecordatoriosHabitos(habit);
-
-                  } else {
-                    if (box.values.any((h) => h.name == vm.title.trim())) {
+                  if (vm.existingHabit != null) { // editing an habit
+                    if(await vm.nameInUse(vm.titleController.text.trim()))
+                    {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(texts.nameAlreadyInUse)),
+                      SnackBar(content: Text(texts.nameAlreadyInUse)),
                       );
                       return;
                     }
-                    box.add(habit);
-                    programarRecordatoriosHabitos(habit);
+                    print("Guardando habito editado");
+                    vm.generateEditHabit(existingHabit!,vm.selectedTime);
+
+                    vm.restartVM();
+
+                  } else {
+                    if(await vm.nameInUse(vm.titleController.text.trim()))
+                    {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(texts.nameAlreadyInUse)),
+                      );
+                      return;
+                    }
+
+                    vm.saveHabit(habit,vm.selectedTime);
+                    vm.restartVM();
 
                   }
 

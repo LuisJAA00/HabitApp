@@ -1,6 +1,8 @@
+
 import 'package:hive/hive.dart';
-import 'package:untitled/model/HabitProgress.dart';
-import 'package:untitled/model/ReminderSettings.dart';
+import 'package:untitled/model/hiveObjects/HabitProgress.dart';
+import 'package:untitled/model/hiveObjects/ReminderSettings.dart';
+
 
 part 'Habit.g.dart';
 

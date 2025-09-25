@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import '../componentes/notificationsApi.dart';
+import 'package:untitled/services/DBservice.dart';
+import '../services/notiService.dart';
+
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class Progreso extends StatelessWidget {
   const Progreso({super.key});
 
   void _cancelarTodasLasNotificaciones(BuildContext context) async {
-    await NotificationApi.instance.flutterLocalNotificationsPlugin.cancelAll();
+    await Notiservice.instance.flutterLocalNotificationsPlugin.cancelAll();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -14,11 +17,22 @@ class Progreso extends StatelessWidget {
       ),
     );
   }
+  void _eliminarTodosLosHabitos(BuildContext context) async {
+
+  final box = DBHelper.instance.habitBox;
+  await box.clear();
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('🗑️ Todos los hábitos fueron eliminados'),
+    ),
+  );
+}
 
   void _mostrarNotificacionesPendientes(BuildContext context) async {
-    final plugin = NotificationApi.instance.flutterLocalNotificationsPlugin;
+    final plugin = Notiservice.instance.flutterLocalNotificationsPlugin;
     final List<PendingNotificationRequest> pendientes =
-        await plugin.pendingNotificationRequests();
+      await plugin.pendingNotificationRequests();
 
     if (pendientes.isEmpty) {
       showDialog(
@@ -93,6 +107,14 @@ class Progreso extends StatelessWidget {
             icon: const Icon(Icons.delete_forever),
             backgroundColor: Colors.redAccent,
           ),
+          const SizedBox(height: 12),
+FloatingActionButton.extended(
+  onPressed: () => _eliminarTodosLosHabitos(context),
+  label: const Text('Borrar hábitos'),
+  icon: const Icon(Icons.cleaning_services),
+  backgroundColor: Colors.deepOrange,
+),
+
         ],
       ),
     );

@@ -1,13 +1,18 @@
 import 'package:hive/hive.dart';
-import 'package:untitled/model/Habit.dart';
-import 'package:untitled/model/NoTimeNotificationDays.dart';
+import 'package:untitled/model/HabitSeleccionados.dart';
+import 'package:untitled/model/hiveObjects/Habit.dart';
+import 'package:untitled/model/HabitBase.dart';
+import 'package:untitled/model/HabitDiario.dart';
+import 'package:untitled/model/HabitPorSemana.dart';
+
+import 'package:untitled/model/hiveObjects/NoTimeNotificationDays.dart';
 
 class DBHelper {
   static final DBHelper _instance = DBHelper._internal();
   DBHelper._internal();
   static DBHelper get instance => _instance;
 
-  static const String _boxName = "test3"; 
+  static const String _boxName = "test6"; 
   static const String _boxDaysName = "days";
   Box<Habit>? _habitBox;
   Box<NoTimeNotificationDays>? _boxDays;
@@ -51,4 +56,20 @@ class DBHelper {
 NoTimeNotificationDays? getNotificationDays() {
   return daysBox.get(_boxDaysName);
 }
+
+List<Habitbase> getAllHabits() {
+  return habitBox.values.map((h) {
+    switch (h.frecuency) {
+      case "diario":
+        return HabitDiario(h);
+      case "xPorSemana":
+        return HabitPorSemana(h);
+      case "diasEspecificos":
+        return HabitSeleccionados(h);
+      default:
+        throw Exception("Tipo de frecuencia no reconocida: ${h.frecuency}");
+    }
+  }).toList();
+}
+
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../model/Habit.dart';
+import 'package:untitled/model/HabitBase.dart';
 
 class HabitDetailPage extends StatelessWidget {
-  final Habit habit;
+  final Habitbase habit;
 
   const HabitDetailPage({super.key, required this.habit});
 
@@ -21,7 +21,7 @@ class HabitDetailPage extends StatelessWidget {
     ];
 
     for (int i = 0; i < 7; i++) {
-      if (habit.progress.daysTodoHabit[i] == 1) {
+      if (habit.daysTodoHabit[i] == 1) {
         dias.add("${diasSemana[i]}");
       }
     }
@@ -46,7 +46,7 @@ class HabitDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Fecha de inicio: ${habit.progress.startedAt?.day}/${habit.progress.startedAt?.month}/${habit.progress.startedAt?.year}",
+              "Fecha de inicio: ${habit.lastDateDone.day}/${habit.lastDateDone.month}/${habit.lastDateDone.year}",
               style: TextStyle(fontSize: 20),
             ),
             SizedBox(height: 10),
@@ -59,15 +59,20 @@ class HabitDetailPage extends StatelessWidget {
 
             if (habit.usesTimer)
               Text(
-                "Temporizador: ${habit.progress.timeToCompleteHabit} minutos",
+                "Temporizador: ${habit.timeToCompleteHabit} minutos",
               ),
             if (habit.usesTimer == false) Text("Sin temporizador"),
 
-            if (habit.reminder?.enable == true && habit.reminder!.time != null)
-              Text(
-                "Notificaciones activas a las: ${habit.reminder?.time?.hour} hrs ${habit.reminder?.time?.minute} mts",
-              ),
+            
+       //     if (habit.reminder?.enable == true) ...[
+         //     Text("Notificaciones activas a las:"),
+           //   ...habit.reminder!.time!.map((t) => Text(
+             // "${t.hour} hrs ${t.minute} min",
+              //style: TextStyle(fontSize: 16),
+              //)),
+              //],
 
+              
             if (habit.reminder?.enable == false)
               Text("Sin notificaciones programadas"),
             // Puedes agregar más información aquí

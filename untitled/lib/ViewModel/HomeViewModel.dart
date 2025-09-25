@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/componentes/notificationsApi.dart';
-import 'package:untitled/model/Habit.dart';
+import 'package:untitled/services/DBservice.dart';
+import 'package:untitled/model/hiveObjects/Habit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:untitled/model/NoTimeHabit.dart';
-import 'package:untitled/screens/Add.dart';
+import 'package:untitled/model/HabitBase.dart';
+import 'package:untitled/repos/DBrepo.dart';
+import 'package:untitled/repos/NotiRepo.dart';
+import 'package:untitled/view/Add.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  final Box<Habit> _box = Hive.box<Habit>("test3");
+  final Box<Habit> _box = DBHelper.instance.habitBox;
 
-  List<Habit> _paraHoy = [];
-  NoTimeHabit noTimeHabits = NoTimeHabit.instance;
-  List<Habit> _yaRealizados = [];
-  Map<int, List<Habit>> _proximosDias = {};
-  NoTimeHabit noTimeHabit = NoTimeHabit.instance;
-  List<Habit> get paraHoy => _paraHoy;
-  List<Habit> get yaRealizados => _yaRealizados;
-  Map<int, List<Habit>> get proximosDias => _proximosDias;
+  /////
+  ///repos
+  NotiRepo notiRepo = new NotiRepo();
+  DBrepo dbRepo = new DBrepo();
+  ///
+  ///
+  ///
+  //////
+
+  List<Habitbase> _paraHoy = [];
+  List<Habitbase> _yaRealizados = [];
+  Map<int, List<Habitbase>> _proximosDias = {};
+  List<Habitbase> get paraHoy => _paraHoy;
+  List<Habitbase> get yaRealizados => _yaRealizados;
+  Map<int, List<Habitbase>> get proximosDias => _proximosDias;
   bool get isEmpty => _box.isEmpty;
 
   HomeViewModel() {
@@ -36,9 +45,14 @@ class HomeViewModel extends ChangeNotifier {
     _yaRealizados = [];
     _proximosDias = {};
 
-    for (final habit in _box.values) {
-      final isDoneToday = habit.progress.date.day == ahora.day;
+    for (final habit in DBHelper.instance.getAllHabits()) {
+    
+   
+      
 
+      final isDoneToday = habit.lastDateDone.day == ahora.day; // CHECAR
+      print("checando habitos para mostrar");
+      print("${habit.name} tiene fecha ultima ${habit.lastDateDone.day} y hoy es $ahora");
       if (habit.frecuency == "diario") {
         if (isDoneToday) {
           _yaRealizados.add(habit);
@@ -46,19 +60,22 @@ class HomeViewModel extends ChangeNotifier {
           _paraHoy.add(habit);
         }
       } else if (habit.frecuency == "diasEspecificos") {
-        if (habit.progress.daysTodoHabit[todayWeekday] == 1) {
+        if (habit.daysTodoHabit[todayWeekday] == 1) {
           if (isDoneToday) {
             _yaRealizados.add(habit);
           } else {
             _paraHoy.add(habit);
           }
         } else {
-          final nextDay = _getNextDay(habit.progress.daysTodoHabit);
+          final nextDay = _getNextDay(habit.daysTodoHabit);
           if (!_proximosDias.containsKey(nextDay)) {
             _proximosDias[nextDay] = [];
           }
           _proximosDias[nextDay]!.add(habit);
         }
+      } else if (habit.frecuency == "diasEspecificos")
+      {
+
       }
     }
 
@@ -78,82 +95,34 @@ class HomeViewModel extends ChangeNotifier {
     return -1; // nunca debería ocurrir
   }
 
-  void habitDone(Habit habit)
+  void habitDone(Habitbase habit)
   {
-    if (DateTime.now().difference(habit.progress.date).inHours >= 24) { // solo una vez por día
-  //actualiza ultima vez hecho a hoy, suma veces hecho +1
-  habit.progress.date = DateTime.now();
-  habit.progress.vecesCompletado++;
-  habit.save();
-}else{
+    //habit.habitDone();
+    notiRepo.borrarNextNotificacion(habit);
 
-  return;
-}
-
-  if (habit.reminder?.enable == true) {
-    // ¿recordatorios activos?
-
-    // ¿es el tiempo activo?
-    if (habit.reminder?.time != null) {
-
-      if (habit.reminder!.time!.hour >= DateTime.now().hour &&
-          habit.reminder!.time!.minute >= DateTime.now().minute) {
-
-      NotificationApi.instance.CancelNext(
-          habit: habit,
-          hour: habit.reminder!.time!.hour,
-          minute: habit.reminder!.time!.minute,
-        );
-        
-        }
-
-    } 
-    else {
-     // noTimeHabits.deleteNotificationNext(habit);
-    }
-
-
-
-  }else{
-    //no se hace nada, no hay recordatorios que cancelar...
+               
   }
 
-                
-                        
-}
-
-  void editHabit(Habit habit,context)
+  void editHabit(Habitbase habit,context)
   {
     Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => Add(existingHabit: habit),
+                  builder: (context) => Add(existingHabit: habit.habit),
                 ),
               );
 
     
   }
 
-  void deleteHabit(Habit habit) {
+  void deleteHabit(Habitbase habit) {
+
     final key = habit.key as int?;
-
     if (key != null) {
-      if (habit.reminder?.time != null) {
-        print("borrando habito");
-        NotificationApi.instance.cancel(
-          habit: habit,
-          hour: habit.reminder!.time!.hour,
-          minute: habit.reminder!.time!.minute,
-        );
-      }
-      else{
-      print("no time habit elimination trigerd...");
-       noTimeHabit.deleteNotifications(habit);
-      }
-
-      _box.delete(key);
-
+      notiRepo.deleteNotification(habit.habit);
+      dbRepo.borrarHabit(habit);
     }
+    
   }
 
   @override
