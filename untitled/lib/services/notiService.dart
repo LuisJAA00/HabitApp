@@ -3,7 +3,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:untitled/constants/constants.dart';
+
 import 'package:untitled/model/hiveObjects/Habit.dart';
 
 class Notiservice {
@@ -191,11 +191,6 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
   
 
  }
-void cancelSingleNot(Habit habit, DateTime when) async
-{
-  final id = genId(NoTimeHabitsID.id,when);
-  print("eliminado notificacion con id  ${id}");
-  await _notificationsPlugin.cancel(id);
-}
+
  
 }

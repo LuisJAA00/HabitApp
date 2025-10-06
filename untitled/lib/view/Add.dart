@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 import 'package:untitled/componentes/BotonApp.dart';
+import 'package:untitled/componentes/NotificationList.dart';
 
 import 'package:untitled/componentes/notificationCard.dart';
 import 'package:untitled/l10n/app_localizations.dart';
@@ -14,7 +15,7 @@ class Add extends StatelessWidget {
   final Habit? existingHabit;
 
   const Add({super.key, this.existingHabit});
-  
+
   Widget buildHabitCard(BuildContext context, String daysText, DateTime time) {
 
     final vm = Provider.of<AddViewModel>(context);
@@ -36,6 +37,7 @@ class Add extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (vm.existingHabit == null && existingHabit != null) {
         vm.init(existingHabit);
+        print("inicializando existing habit");
       }
     });
 
@@ -49,6 +51,7 @@ class Add extends StatelessWidget {
         backgroundColor: Colors.purple.shade100,
         elevation: 4,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -90,7 +93,8 @@ class Add extends StatelessWidget {
                         );
                       }).toList(),
                       onChanged: (min) {
-                        if (min != null) vm.setDuration(min);
+                        if (min != null){ vm.setDuration(min);}
+                       
                       },
                     ),
                   ],
@@ -104,9 +108,6 @@ class Add extends StatelessWidget {
                 decoration: InputDecoration(labelText: texts.frequency),
                 items: [
                   DropdownMenuItem(value: 'diario', child: Text(texts.daily)),
-                  const DropdownMenuItem(
-                      value: 'xPorSemana',
-                      child: Text("X veces por semana")),
                   DropdownMenuItem(
                     value: 'diasEspecificos',
                     child: Text(texts.selectDays),
@@ -270,8 +271,26 @@ class Add extends StatelessWidget {
                 ),
 
               const SizedBox(height: 40),
+              
+              if(vm.existingHabit != null)
+                Notificationlist(text: "Notificaciones actuales",horarios: vm.existingHabit!.reminder!.horarios, onDelete: 
+                (horario)
+                {
+                  vm.removeExistingTime(horario);
+                },),
+      
+              const SizedBox(height: 40),
 
-             /* Consumer<AddViewModel>(
+              if(vm.selectedTime.isNotEmpty)
+                Consumer<AddViewModel>(
+                  builder: (context, vm, child){
+                    return Notificationlist(horarios: vm.selectedTime, text: "Nuevas notificaciones",onDelete: (horario) {
+                      vm.removeTime(horario);
+                    },);
+                  }
+                ),
+                
+              /*  Consumer<AddViewModel>(
                 builder: (context, vm, child)
                 {
                   final times = vm.selectedTime;
@@ -280,12 +299,12 @@ class Add extends StatelessWidget {
                     itemCount: times.length,
                     itemBuilder: (context, index) {
                       final time = times[index];
-                      return Text(time.toString());
+                      return Text(time.toString());//Text(vm.frequency + " " + time.hour.toString() + " " + time.minute.toString());
                     },
                   );
                 }
-                ),
-              */
+                ), */
+              
 
 
               const SizedBox(height: 40),
@@ -298,13 +317,13 @@ class Add extends StatelessWidget {
                   final habit = vm.toHabit();
 
                   if (vm.existingHabit != null) { // editing an habit
-                    if(await vm.nameInUse(vm.titleController.text.trim()))
-                    {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(texts.nameAlreadyInUse)),
-                      );
-                      return;
-                    }
+                   // if(await vm.nameInUse(vm.titleController.text.trim()))
+                   // {
+                   //   ScaffoldMessenger.of(context).showSnackBar(
+                   //   SnackBar(content: Text(texts.nameAlreadyInUse)),
+                   //   );
+                   //   return;
+                   // }
                     print("Guardando habito editado");
                     vm.generateEditHabit(existingHabit!,vm.selectedTime);
 
@@ -319,13 +338,26 @@ class Add extends StatelessWidget {
                       return;
                     }
 
+                    if(vm.selectedTime.isEmpty)
+                    {
+                      vm.setTime(TimeOfDay.now());
+                    }
+
                     vm.saveHabit(habit,vm.selectedTime);
                     vm.restartVM();
 
                   }
 
+                  String finText = "";
+                  if(vm.existingHabit != null){
+                    finText = "Habito editado correctamente";
+                  }
+                  else{
+                    finText = texts.habitCreated;
+                  }
+
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(texts.habitCreated)),
+                    SnackBar(content: Text(finText)),
                   );
                  
                 },

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:untitled/ViewModel/AddViewModel.dart';
 import 'package:untitled/services/DBservice.dart';
 import 'package:untitled/model/hiveObjects/Habit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -6,6 +8,7 @@ import 'package:untitled/model/HabitBase.dart';
 import 'package:untitled/repos/DBrepo.dart';
 import 'package:untitled/repos/NotiRepo.dart';
 import 'package:untitled/view/Add.dart';
+import 'package:untitled/view/HabitCountDown.dart';
 
 class HomeViewModel extends ChangeNotifier {
   final Box<Habit> _box = DBHelper.instance.habitBox;
@@ -91,10 +94,25 @@ class HomeViewModel extends ChangeNotifier {
     return -1; // nunca debería ocurrir
   }
 
-  void habitDone(Habitbase habit)
+  void habitDone(Habitbase habit,BuildContext context)
   {
-    //habit.habitDone();
+ 
+    if (habit.usesTimer) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => HabitCountdown(habit: habit.habit,onFinish: ()
+        {
+          notiRepo.borrarNextNotificacion(habit);
+          Navigator.pop(context);
+        }
+        ,)),
+      );
+      
+  }
+  else{
     notiRepo.borrarNextNotificacion(habit);
+  }
+    
 
                
   }
@@ -104,10 +122,13 @@ class HomeViewModel extends ChangeNotifier {
     Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => Add(existingHabit: habit.habit),
+                   builder: (context) => ChangeNotifierProvider(
+                    create: (_) => AddViewModel()..init(habit.habit),
+                    child: Add(existingHabit: habit.habit),
+                  ),
                 ),
               );
-
+   
     
   }
 

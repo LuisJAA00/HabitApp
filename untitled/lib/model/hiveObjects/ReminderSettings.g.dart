@@ -20,19 +20,22 @@ class ReminderSettingsAdapter extends TypeAdapter<ReminderSettings> {
       enable: fields[1] as bool,
       pers: fields[2] as bool,
       notificacioens: (fields[0] as Map).cast<DateTime, int>(),
+      horarios: (fields[3] as List).cast<DateTime>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, ReminderSettings obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.notificacioens)
       ..writeByte(1)
       ..write(obj.enable)
       ..writeByte(2)
-      ..write(obj.pers);
+      ..write(obj.pers)
+      ..writeByte(3)
+      ..write(obj.horarios);
   }
 
   @override

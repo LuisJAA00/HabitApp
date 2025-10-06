@@ -1,3 +1,4 @@
+
 import 'package:hive/hive.dart';
 
 part 'ReminderSettings.g.dart';
@@ -15,6 +16,9 @@ class ReminderSettings extends HiveObject {
   @HiveField(2)
   bool pers;
 
+  @HiveField(3)
+  List<DateTime> horarios = [];
+
   
 
   ReminderSettings({
@@ -22,7 +26,8 @@ class ReminderSettings extends HiveObject {
 
     required this.enable,
     required this.pers,
-    required this.notificacioens
+    required this.notificacioens,
+    required this.horarios
   });
 }
 

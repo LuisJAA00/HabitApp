@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
-import 'package:untitled/ViewModel/AddViewModel.dart';
+
+import 'package:untitled/ViewModel/CountDownVM.dart';
 import 'package:untitled/ViewModel/HomeViewModel.dart';
 import 'package:untitled/services/DBservice.dart';
 import 'package:untitled/model/hiveObjects/HabitProgress.dart';
@@ -27,7 +28,7 @@ void main() async {
   Hive.registerAdapter(ReminderSettingsAdapter());
 
 
-  await Hive.openBox<Habit>("test6");
+  await Hive.openBox<Habit>("test7");
   await DBHelper.instance.init();
 
 
@@ -36,9 +37,8 @@ void main() async {
 
   runApp(MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AddViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
-
+        ChangeNotifierProvider(create: (_) => Countdownvm())
       ],
       child: const MyApp(), 
     ),);

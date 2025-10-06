@@ -12,7 +12,7 @@ class Home extends StatelessWidget {
 
     return Habitcard(
       isActive: false,
-      onDone: () => viewModel.habitDone(habit),       
+      onDone: () => viewModel.habitDone(habit,context),       
       onStart: () {},
       onPause: () {},
       onFinish: () {},

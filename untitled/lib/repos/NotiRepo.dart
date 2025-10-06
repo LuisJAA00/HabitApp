@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+//import 'package:flutter/material.dart';
 import 'package:untitled/services/notiService.dart';
 import 'package:untitled/model/HabitBase.dart';
 import 'package:untitled/model/hiveObjects/Habit.dart';
@@ -25,18 +25,33 @@ class NotiRepo {
           "diasEspecificos": SeleccionadosHabitStrat(),
         };
 
+
+
+
   Future<void> deleteNotification(Habit habit) async {
 
 
     final strategy = _strategies[habit.frecuency];
     if (strategy != null) {
-      await strategy.borrarNotificaciones(habit);
+      print("borrando notificaciones");
+      //await strategy.borrarNotificaciones(habit);
+      borrarNotificaciones(habit);
       return;
     }
   }
 
-  void borrarExp(String dia, TimeOfDay time ){
+  void borrarNotificaciones(Habit habit)
+  async{
+    Map map = habit.reminder!.notificacioens;
 
+    for(DateTime k in map.keys)
+    {
+      print("eliminando " + k.toString() + " con id " + map[k].toString());
+      Notiservice.instance.cancelNotification(map[k]);
+    }
+    map.clear();
+
+    await habit.save();
   }
 
   Future<void> borrarNextNotificacion(Habitbase habit) async {
@@ -60,18 +75,24 @@ class NotiRepo {
 
 
   Future<void> agendarNotificaciones(Habit habit, List<DateTime> horas) async {
+    
+
     final strategy = _strategies[habit.frecuency];
     if (strategy != null) {
 
-      if(horas.isEmpty)
+     if(horas.isEmpty)
       {
-        horas.add(DateTime.now());
-      }
-      for(DateTime h in horas)
-      {
+        print("INVALIDO, HORAS ESTA VACIO");
+      } 
+      for (DateTime h in List.from(horas)) {
         await strategy.agendarNotificaciones(habit, h);
       }
-      
+
+    var map = habit.reminder!.notificacioens;
+    for(var k in map.keys){
+      print("en la fecha " + k.toString() + " se guarda el id " + map[k].toString());
+    }
+    habit.save();
       return;
     }
   }

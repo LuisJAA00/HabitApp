@@ -61,7 +61,7 @@ class HabitDetailPage extends StatelessWidget {
               Text(
                 "Temporizador: ${habit.timeToCompleteHabit} minutos",
               ),
-            if (habit.usesTimer == false) Text("Sin temporizador"),
+            if (habit.usesTimer == false) Text("Sin temporizador " + habit.progress.timeToCompleteHabit!.toString()),
 
             
        //     if (habit.reminder?.enable == true) ...[

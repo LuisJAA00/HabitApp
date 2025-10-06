@@ -21,6 +21,10 @@ class DiarioHabitStrat implements HabitNotificationStrategy{
 
     int timeHour = h.hour;
     int timeMinute = h.minute;
+    print("hora");
+    print(timeHour);
+    print("minuto");
+    print(timeMinute);
 
   int idCount = 0;
   for (int i = 0; i < 30; i++) {
@@ -34,8 +38,6 @@ class DiarioHabitStrat implements HabitNotificationStrategy{
       scheduledDay.year,
       scheduledDay.month,
       scheduledDay.day,
-      //timeHour,
-      //timeMinute,
       timeHour,
       timeMinute,
       0,

@@ -9,7 +9,7 @@ class BotonApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
+    
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color.fromARGB(255, 127, 82, 190),

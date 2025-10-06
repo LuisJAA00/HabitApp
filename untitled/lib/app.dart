@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:untitled/ViewModel/AddViewModel.dart';
 import 'package:untitled/view/Progreso.dart';
 import 'view/Add.dart';
 import 'componentes/NavigationController.dart';
@@ -19,11 +21,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 1;
 
-  static const List<Widget> _screens = <Widget>[
+  static final List<Widget> _screens = <Widget>[
     Progreso(),
     Home(),
     Sound(),
-    Add(),
+    ChangeNotifierProvider(
+      create: (_) => AddViewModel(),
+      child: const Add(),
+    ),
   ];
 
   @override

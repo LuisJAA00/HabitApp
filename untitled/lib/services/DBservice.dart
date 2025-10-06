@@ -11,7 +11,7 @@ class DBHelper {
   DBHelper._internal();
   static DBHelper get instance => _instance;
 
-  static const String _boxName = "test6"; 
+  static const String _boxName = "test7"; 
   static const String _boxDaysName = "days";
   Box<Habit>? _habitBox;
   Box<NoTimeNotificationDays>? _boxDays;
