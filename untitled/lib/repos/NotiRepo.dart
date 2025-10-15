@@ -35,14 +35,14 @@ class NotiRepo {
     if (strategy != null) {
       print("borrando notificaciones");
       //await strategy.borrarNotificaciones(habit);
-      borrarNotificaciones(habit);
+      _borrarNotificaciones(habit);
       return;
     }
   }
 
-  void borrarNotificaciones(Habit habit)
+  void _borrarNotificaciones(Habit habit)
   async{
-    Map map = habit.reminder!.notificacioens;
+    Map map = habit.reminder.notificacioens;
 
     for(DateTime k in map.keys)
     {
@@ -55,22 +55,27 @@ class NotiRepo {
   }
 
   Future<void> borrarNextNotificacion(Habitbase habit) async {
-    if(!hasPassed24hrs(habit.habit)) //solo funciona para habitos con una sola noti...
+    /*if(!hasPassed24hrs(habit.habit)) //solo funciona para habitos con una sola noti...
     {
       return;
+    }*/
+    if(habit.vecesPorDia == 0 || habit.progress.vecesCompletado == habit.vecesPorDia || habit.reminder.enable != true)
+    {
+      //nada que borrar
+      print("nada que borrar");
+      print("vecesPor dia" + habit.vecesPorDia.toString());
+      print("vees completado" + habit.progress.vecesCompletado.toString());
+      print("reminder enable?" + habit.reminder.enable.toString());
+      return;
     }
-
-    habit.progress.date = DateTime.now();
-    habit.progress.vecesCompletado++;
-    habit.habit.save();
-
-    //final strategy = _strategies[habit.frecuency];
+    print("cancelando?");
+    Notiservice.instance.cancelNext(habit.habit);
     
-    if (habit.reminder?.enable == true) {
-    // ¿recordatorios activos?
-      Notiservice.instance.cancelNext(habit.habit);
-    }
 
+  }
+
+  void instantAlarm(){
+    Notiservice.instance.instantAlarm();
   }
 
 
@@ -88,7 +93,34 @@ class NotiRepo {
         await strategy.agendarNotificaciones(habit, h);
       }
 
-    var map = habit.reminder!.notificacioens;
+    var map = habit.reminder.notificacioens;
+    for(var k in map.keys){
+      print("en la fecha " + k.toString() + " se guarda el id " + map[k].toString());
+    }
+    habit.save();
+      return;
+    }
+  }
+
+  Future<void> reAgendarNotificaciones(Habit habit) async
+  {
+    final strategy = _strategies[habit.frecuency];
+    final horas = habit.reminder.horarios; // cuando debe guardarse un habito
+    //eliminar notificaciones actuales
+    deleteNotification(habit);
+
+    if (strategy != null) {
+
+     if(horas.isEmpty)
+      {
+        print("INVALIDO, HORAS ESTA VACIO");
+      } 
+
+      for (DateTime h in List.from(horas)) {
+        await strategy.agendarNotificaciones(habit, h);
+      }
+
+    var map = habit.reminder.notificacioens;
     for(var k in map.keys){
       print("en la fecha " + k.toString() + " se guarda el id " + map[k].toString());
     }

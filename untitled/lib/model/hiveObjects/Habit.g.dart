@@ -21,7 +21,7 @@ class HabitAdapter extends TypeAdapter<Habit> {
       usesTimer: fields[1] as bool,
       frecuency: fields[2] as String,
       progress: fields[3] as HabitProgress,
-      reminder: fields[4] as ReminderSettings?,
+      reminder: fields[4] as ReminderSettings,
     );
   }
 

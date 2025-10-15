@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../ViewModel/HomeViewModel.dart';
 class Home extends StatelessWidget {
   const Home({super.key});
+  
 
   Widget buildHabitCard(BuildContext context, Habitbase habit, {bool isDone = false}) {
     final viewModel = Provider.of<HomeViewModel>(context, listen: false);
@@ -21,6 +22,7 @@ class Home extends StatelessWidget {
       onEdit: () => viewModel.editHabit(habit, context),       
     );
   }
+  
 
   @override
   Widget build(BuildContext context) {

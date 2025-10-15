@@ -9,7 +9,7 @@ class SeleccionadosHabitStrat implements HabitNotificationStrategy{
   Future<void> agendarNotificaciones(Habit habit,DateTime h) async {
     final reminder = habit.reminder;
 
-    if (reminder == null || !reminder.enable) return;
+    if (!reminder.enable) return;
 
     final now = DateTime.now();
 
@@ -39,7 +39,7 @@ class SeleccionadosHabitStrat implements HabitNotificationStrategy{
           continue;
         }
         int id = Notiservice.instance.genId(habit.key,scheduledTime);
-        habit.reminder?.notificacioens[scheduledTime] = id;
+        habit.reminder.notificacioens[scheduledTime] = id;
 
         await Notiservice.instance.scheduleReminder(
           id: id,
@@ -54,7 +54,7 @@ class SeleccionadosHabitStrat implements HabitNotificationStrategy{
 
   @override
   Future<void> borrarNotificaciones(Habit habit) async {
-      Map map = habit.reminder!.notificacioens;
+      Map map = habit.reminder.notificacioens;
       for(DateTime k in map.keys)
       {
         Notiservice.instance.cancelNotification(map[k]);
@@ -64,6 +64,7 @@ class SeleccionadosHabitStrat implements HabitNotificationStrategy{
       await habit.save();
   }
   
+
 
   
 

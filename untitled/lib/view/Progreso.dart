@@ -114,6 +114,22 @@ FloatingActionButton.extended(
   icon: const Icon(Icons.cleaning_services),
   backgroundColor: Colors.deepOrange,
 ),
+FloatingActionButton.extended(
+  onPressed: () {
+    // Enviar notificación instantánea
+    /*Notiservice.instance.showInstantNotification(
+      id: 999, // puedes generar un ID dinámico si quieres
+      title: '🚀 Notificación instantánea',
+      body: 'Esta es una notificación de prueba',
+    );*/
+
+    Notiservice.instance.instantAlarm();
+    
+  },
+  label: const Text('Notificación instantánea'),
+  icon: const Icon(Icons.flash_on),
+  backgroundColor: Colors.green,
+),
 
         ],
       ),

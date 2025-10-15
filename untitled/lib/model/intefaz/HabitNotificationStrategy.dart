@@ -6,6 +6,7 @@ abstract class HabitNotificationStrategy {
   
   Future<void> borrarNotificaciones(Habit habit);
   Future<void> agendarNotificaciones(Habit habit,DateTime hora);
+  //Future<void> reAgendarNotificaciones(Habit habit, DateTime hora, DateTime start);
 
   
 }

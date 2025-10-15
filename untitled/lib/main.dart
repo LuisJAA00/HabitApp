@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import 'package:untitled/ViewModel/CountDownVM.dart';
 import 'package:untitled/ViewModel/HomeViewModel.dart';
 import 'package:untitled/services/DBservice.dart';
@@ -16,7 +16,6 @@ import 'model/hiveObjects/Habit.dart';
 //para
 
 void main() async {
-  //idioma
 
   //inicializar hiveP
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,8 +32,14 @@ void main() async {
 
 
   WidgetsFlutterBinding.ensureInitialized();
-  // dispositivo ~/Android/Sdk/emulator/emulator -avd Pixel_9 -gpu swiftshader_indirect -no-audio
+  // dispositivo ~/Android/Sdk/emulator/emulator -avd Pixel_9_Pro -gpu swiftshader_indirect -no-audio
 
+
+  if (await Permission.notification.isDenied) {
+    await Permission.notification.request();
+  }
+
+  
   runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),

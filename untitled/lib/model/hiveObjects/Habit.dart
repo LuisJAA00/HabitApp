@@ -21,7 +21,7 @@ class Habit extends HiveObject {
   HabitProgress progress;
 
   @HiveField(4)
-  ReminderSettings? reminder;
+  ReminderSettings reminder;
 
   Habit({
     required this.name,

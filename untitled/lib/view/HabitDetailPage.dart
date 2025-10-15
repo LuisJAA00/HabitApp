@@ -73,7 +73,7 @@ class HabitDetailPage extends StatelessWidget {
               //],
 
               
-            if (habit.reminder?.enable == false)
+            if (habit.reminder.enable == false)
               Text("Sin notificaciones programadas"),
             // Puedes agregar más información aquí
           ],

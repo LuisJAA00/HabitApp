@@ -13,9 +13,11 @@ class Habitbase {
   bool get usesTimer => habit.usesTimer;
   int get key => habit.key;
   int? get timeToCompleteHabit => habit.progress.timeToCompleteHabit;
-  ReminderSettings? get reminder => habit.reminder;
+  ReminderSettings get reminder => habit.reminder;
   int? get minutesCompleted => habit.progress.minutesCompleted;
   HabitProgress get progress => habit.progress;
+  int get vecesPorDia => habit.reminder.horarios.length;
+
 
   //int get hour => habit.reminder!.time!.hour;
   //int get minute => habit.reminder!.time!.minute;

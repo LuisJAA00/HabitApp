@@ -260,7 +260,18 @@ class Add extends StatelessWidget {
                   onPressed: () async {
                     final picked = await showTimePicker(
                       context: context,
+                      
                       initialTime: TimeOfDay.now(),
+                      builder: (BuildContext context, Widget? child) {
+                        return MediaQuery(
+                          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+                          child: Localizations.override(
+                            context: context,
+                            locale: const Locale('en', 'US'), // Override locale to ensure AM/PM format
+                            child: child!,
+                          ),
+                        );
+                      },
                     );
                     if (picked != null) 
                     {
@@ -272,8 +283,8 @@ class Add extends StatelessWidget {
 
               const SizedBox(height: 40),
               
-              if(vm.existingHabit != null)
-                Notificationlist(text: "Notificaciones actuales",horarios: vm.existingHabit!.reminder!.horarios, onDelete: 
+              if(vm.existingHabit != null && vm.isReminderEnable)
+                Notificationlist(text: "Notificaciones actuales",horarios: vm.existingHabit!.reminder.horarios, onDelete: 
                 (horario)
                 {
                   vm.removeExistingTime(horario);
@@ -281,7 +292,7 @@ class Add extends StatelessWidget {
       
               const SizedBox(height: 40),
 
-              if(vm.selectedTime.isNotEmpty)
+              if(vm.selectedTime.isNotEmpty && vm.isReminderEnable)
                 Consumer<AddViewModel>(
                   builder: (context, vm, child){
                     return Notificationlist(horarios: vm.selectedTime, text: "Nuevas notificaciones",onDelete: (horario) {
@@ -325,7 +336,7 @@ class Add extends StatelessWidget {
                    //   return;
                    // }
                     print("Guardando habito editado");
-                    vm.generateEditHabit(existingHabit!,vm.selectedTime);
+                    vm.generateEditHabit(habit,vm.existingHabit!,vm.selectedTime);
 
                     vm.restartVM();
 
@@ -345,6 +356,7 @@ class Add extends StatelessWidget {
 
                     vm.saveHabit(habit,vm.selectedTime);
                     vm.restartVM();
+                   
 
                   }
 

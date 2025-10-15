@@ -1,8 +1,12 @@
 
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:flutter_timezone/timezone_info.dart';
+
 import 'package:timezone/data/latest.dart' as tz;
+
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+
 
 import 'package:untitled/model/hiveObjects/Habit.dart';
 
@@ -23,15 +27,23 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
   Future<void> init() async {
     tz.initializeTimeZones();
 
-    final String localTZ = await FlutterNativeTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(localTZ));
+    final TimezoneInfo localTimezone = await FlutterTimezone.getLocalTimezone();
+    final String timezoneName = localTimezone.identifier;
 
+    //setLocalLocation(tz.getLocation(timezoneName));
+
+    tz.setLocalLocation(tz.getLocation(timezoneName));
+  
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
 
     const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings();
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings initializationSettings =
         InitializationSettings(android: androidSettings, iOS: iosSettings);
@@ -51,7 +63,7 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'instant_notifications_channel_id',
+          'instant_notifications_channel_id2',
           'Instant Notifications',
           channelDescription: "instant notification channel",
           importance: Importance.max,
@@ -61,17 +73,70 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       ),
     );
   }
+  bool _dateInRange(DateTime time, DateTime infLim, DateTime supLim)
+  {
+    if(time.isAfter(infLim) && time.isBefore(supLim))
+    {
+      return true;
+    }
+    return false;
+  }
 
+  Future<void> instantAlarm() async {
+  const AndroidNotificationDetails androidDetails =
+      AndroidNotificationDetails(
+    'instant_channelv2',
+    'Instant Notifications',
+    channelDescription: 'Canal para alarmas instantáneas',
+    importance: Importance.max,
+    priority: Priority.high,
+    fullScreenIntent: true,
+    ticker: 'ticker',
+    autoCancel: false,
+    enableVibration: true,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('alarm1')
+  );
+
+  const NotificationDetails platformDetails =
+      NotificationDetails(android: androidDetails);
+
+  await flutterLocalNotificationsPlugin.show(
+    0, // id de notificación
+    '¡Alarma!',
+    'Tu hábito ha finalizado',
+    platformDetails,
+    payload: 'habito_terminado',
+  );
+}
   void cancelNext(Habit habit) async
   {
-    print("cancelando el siguiente");
     DateTime now = DateTime.now();
-    Map map = habit.reminder!.notificacioens;
+    Map map = habit.reminder.notificacioens; // fecha, id
 
-    for (DateTime k in List.from(map.keys)) {
-      print("current k");
-      print(k);
-      if (k.isBefore(now)) {
+    
+    for (DateTime t in List.from(map.keys)) {
+      final kInf = t.subtract(Duration(minutes: 20));
+      print("esta now en el rango? t:" + t.toString());
+      print("inf" + kInf.toString());
+      print("resultado" + _dateInRange(DateTime.now(), kInf, t).toString());
+
+      if(kInf.isAfter(DateTime.now())){
+        break; //aun no es esa fecha
+      }
+
+      if (t.isBefore(now)) {
+      // eliminar notificaciones pasadas, notificacion ya usada
+        map.remove(t);
+      }
+      else if(_dateInRange(DateTime.now(), kInf, t))
+      {
+        cancelNotification(map[t]);
+        print("procediendo a eliminar "+t.toString());
+        map.remove(t);
+        break;
+      }
+      /*if (k.isBefore(now)) {
       // eliminar notificaciones pasadas
       
       map.remove(k);
@@ -84,57 +149,17 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
         map.remove(k);
         break; // solo eliminamos una
       }
+      */
     }
   }
 
-  Future<void> cancel({required habit, required hour, required minute}) async {
-    switch (habit.reminder.reminderFrec) {
-      case 'diario':
-        
-        break;
-      case 'xPorSemana':
-        break;
-      case 'diasEspecificos':
-        _cancelSeleccionados(habit, hour, minute);
-        break;
-    }
-  }
 
   Future<void> cancelNotification(int id )
   async{
       await _notificationsPlugin.cancel(id);
   }
 
-  void _cancelSeleccionados(habit, hour, minute) async {
-    final key = habit.key;
-    for (
-      int i = 0;
-      i < 31 - DateTime.now().difference(habit.progress.date).inDays;
-      i++
-    ) {
 
-
-      final scheduledDay = DateTime.now().add(Duration(days: i));
-
-      int weekdayIndex = scheduledDay.weekday - 1;
-
-      if (habit.progress.daysTodoHabit[weekdayIndex] == 1) {
-        //el dia esta seleccionado...
-        final scheduledTime = tz.TZDateTime(
-          tz.local,
-          scheduledDay.year,
-          scheduledDay.month,
-          scheduledDay.day,
-          hour,
-          minute,
-          0,
-        );
-
-        final id = genId(key,scheduledTime);
-        await _notificationsPlugin.cancel(id);
-      }
-    }
-  }
 
   Future<void> scheduleReminder({
     required int id, 
@@ -144,6 +169,13 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
   }) async {
     tz.TZDateTime scheduleDate = scheduleTime;
 
+    final androidPlugin = _notificationsPlugin
+    .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+final canUseExact = await androidPlugin?.canScheduleExactNotifications() ?? false;
+
+
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
@@ -151,16 +183,20 @@ FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin =>
       scheduleDate,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'daily_nootifications_channel_id',
+          'daily_nootifications_channel_id2vSound',
           'Daily Reminders',
           channelDescription: "reminder to complete daily habit...",
           importance: Importance.max,
           priority: Priority.high,
+          //playSound: true,
+          //sound: RawResourceAndroidNotificationSound('alarm1')
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      //matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      //androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: canUseExact
+      ? AndroidScheduleMode.exactAllowWhileIdle
+      : AndroidScheduleMode.inexactAllowWhileIdle,
     );
   }
 

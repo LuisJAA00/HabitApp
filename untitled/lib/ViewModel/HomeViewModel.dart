@@ -37,10 +37,20 @@ class HomeViewModel extends ChangeNotifier {
   void _init() {
     // Escuchar cambios en la caja Hive
     _box.listenable().addListener(_processHabits);
+    for (final habit in DBHelper.instance.getAllHabits()){
+      if(habit.reminder.notificacioens.isEmpty && habit.reminder.enable)
+      {
+        // Generar notificaciones a partir del ultima dia con notificaciones pendientes
+        // Haste tener nuevamente al menos 30 notificaciones listas.
+        reAgendarNot(habit);
+      }
+    }
     _processHabits();
   }
 
   void _processHabits() {
+    
+    
     final ahora = DateTime.now();
     final todayWeekday = ahora.weekday - 1; // 0 = lunes
 
@@ -48,10 +58,27 @@ class HomeViewModel extends ChangeNotifier {
     _yaRealizados = [];
     _proximosDias = {};
 
+    //Obten todos los habitos y agrupalos
     for (final habit in DBHelper.instance.getAllHabits()) {
-    
 
-      final isDoneToday = habit.lastDateDone.day == ahora.day; // CHECAR
+      DateTime ultima = habit.progress.date;
+      DateTime hoy = DateTime.now();
+
+      // Reinicia veces completado cada dia.
+      if  (ultima.year < hoy.year || 
+        (ultima.year == hoy.year && ultima.month < hoy.month) || 
+        (ultima.year == hoy.year && ultima.month == hoy.month && ultima.day < hoy.day)) {
+
+        habit.progress.vecesCompletado = 0;
+        //print("Última vez hecho fue " + ultima.toString());
+        //print("Reiniciado veces por día");
+      }
+
+      // Reagenda notificaciones si ya se consumieron la mayoria
+
+
+      //final isDoneToday = habit.lastDateDone.day == ahora.day; // CHECAR
+      final isDoneToday = habit.progress.vecesCompletado == habit.reminder.horarios.length;
       if (habit.frecuency == "diario") {
         if (isDoneToday) {
           _yaRealizados.add(habit);
@@ -81,6 +108,11 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  reAgendarNot(Habitbase habit)
+  {
+    notiRepo.reAgendarNotificaciones(habit.habit);
+  }
+
   int _getNextDay(List<int> dias) {
     final now = DateTime.now();
     final todayWeekday = now.weekday - 1;
@@ -95,25 +127,67 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void habitDone(Habitbase habit,BuildContext context)
+  async
   {
- 
+
+   /* DateTime ultima = habit.progress.date;
+    DateTime hoy = DateTime.now();
+
+    // Comparar año, mes y día
+    if (ultima.year < hoy.year || 
+      (ultima.year == hoy.year && ultima.month < hoy.month) || 
+      (ultima.year == hoy.year && ultima.month == hoy.month && ultima.day < hoy.day)) {
+
+      habit.progress.vecesCompletado = 0;
+      print("Última vez hecho fue " + ultima.toString());
+      print("Reiniciado veces por día");
+    }
+    */
+
+    if(habit.progress.vecesCompletado == habit.vecesPorDia)
+    {
+      //completado el objetivo este dia
+      print("completado el objetivo de hoy, sin cambios");
+      return;
+    }
+    
     if (habit.usesTimer) {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => HabitCountdown(habit: habit.habit,onFinish: ()
         {
           notiRepo.borrarNextNotificacion(habit);
           Navigator.pop(context);
+          habit.progress.date = DateTime.now();
+          habit.progress.vecesCompletado++;
+          habit.progress.totalCompletions++;
+          if(habit.progress.timeToCompleteHabit != null)
+          {
+            habit.progress.minutesCompleted = habit.progress.totalCompletions*habit.progress.timeToCompleteHabit! ;
+          }
+          habit.habit.save();
+
+
+          
         }
-        ,)),
+        ,notiRepo: notiRepo,)),
       );
       
   }
   else{
     notiRepo.borrarNextNotificacion(habit);
+
+    habit.progress.date = DateTime.now();
+    habit.progress.vecesCompletado++;
+    habit.progress.totalCompletions++;
+    if(habit.progress.timeToCompleteHabit != null)
+    {
+      habit.progress.minutesCompleted = habit.progress.totalCompletions*habit.progress.timeToCompleteHabit! ;
+    }
+    habit.habit.save();
   }
     
-
+  
                
   }
 

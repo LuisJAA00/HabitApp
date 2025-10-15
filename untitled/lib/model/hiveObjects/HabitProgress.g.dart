@@ -25,7 +25,7 @@ class HabitProgressAdapter extends TypeAdapter<HabitProgress> {
       daysOfWeekCompleted: (fields[5] as List).cast<int>(),
       timeToCompleteHabit: fields[8] as int?,
       daysTodoHabit: (fields[6] as List).cast<int>(),
-      timesXday: fields[7] as int,
+      totalCompletions: fields[7] as int,
       minutesCompleted: fields[9] as int?,
     );
   }
@@ -49,7 +49,7 @@ class HabitProgressAdapter extends TypeAdapter<HabitProgress> {
       ..writeByte(6)
       ..write(obj.daysTodoHabit)
       ..writeByte(7)
-      ..write(obj.timesXday)
+      ..write(obj.totalCompletions)
       ..writeByte(8)
       ..write(obj.timeToCompleteHabit)
       ..writeByte(9)

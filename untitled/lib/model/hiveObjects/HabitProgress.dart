@@ -27,7 +27,7 @@ class HabitProgress extends HiveObject {
   List<int> daysTodoHabit; //que dias se hace el habito
 
   @HiveField(7)
-  int timesXday = 1; //cuantas veces al dia
+  int totalCompletions = 0; //completaciones Totales
 
   @HiveField(8)
   int? timeToCompleteHabit; //cuantos minutos se debe hacer para completar el habito (si es que lleva timer)
@@ -44,7 +44,7 @@ class HabitProgress extends HiveObject {
     required this.daysOfWeekCompleted,
     required this.timeToCompleteHabit,
     required this.daysTodoHabit,
-    required this.timesXday,
+    required this.totalCompletions,
     required this.minutesCompleted,
   });
 }

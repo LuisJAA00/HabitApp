@@ -20,7 +20,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 1;
-
+  
   static final List<Widget> _screens = <Widget>[
     Progreso(),
     Home(),
@@ -31,10 +31,15 @@ class _MyAppState extends State<MyApp> {
     ),
   ];
 
+
+
+  
+
   @override
   void initState() {
     super.initState();
     Notiservice.instance.init();
+    
     NavigationController.tabIndex.addListener(() {
       setState(() {
         _selectedIndex = NavigationController.tabIndex.value;

@@ -49,17 +49,17 @@ class AddViewModel extends ChangeNotifier {
 
     duration = Duration(minutes: progress.timeToCompleteHabit ?? 5);
     goalPerWeek = progress.numeroVecesSemana;
-    goalPerDay = progress.timesXday;
+    goalPerDay =  reminder.horarios.length;//progress.totalCompletions;
     selectedDays = List<bool>.generate(
       7,
       (index) => progress.daysTodoHabit[index] == 1,
     );
 
-    if (reminder != null) {
+    /*if (reminder != null) {
       isReminderEnable = reminder.enable;
       noSpecificTime = false;
       //selectedTime = reminder.time;
-    }
+    }*/
 
     notifyListeners();
   }
@@ -73,27 +73,37 @@ class AddViewModel extends ChangeNotifier {
     return Habit(name: titleController.text, usesTimer: usesTimer, frecuency: frequency, progress: prog, reminder: rem);
     
   }
-void generateEditHabit(Habit habit,List<DateTime> horas){
-  if(habit.reminder?.enable == false || horas.isEmpty)//se eliminaron las notificaciones y no se signan nuevas
+
+void generateEditHabit(Habit newHabit, Habit existingHabit,List<DateTime> horas){
+  if(existingHabit.reminder.enable == false || horas.isEmpty)//se eliminaron las notificaciones y no se signan nuevas
   {
-    deleteHabitNotifications(habit);
+    notiRepo.deleteNotification(existingHabit);
+
+    existingHabit.name = newHabit.name;
+    existingHabit.frecuency = newHabit.frecuency;
+    existingHabit.progress = newHabit.progress;
+    existingHabit.reminder = newHabit.reminder;
+    existingHabit.usesTimer = newHabit.usesTimer;
   }
   else //eliminar las notificaciones viejas y reagendar... //guardar
   {
-    deleteHabitNotifications(habit);
+    notiRepo.deleteNotification(existingHabit);
     //dbRepo.saveHabit(habit);
-    habit.reminder?.horarios = horas;
-    notiRepo.agendarNotificaciones(habit,horas);
+    existingHabit.reminder.horarios = horas;
+    existingHabit.name = newHabit.name;
+    existingHabit.frecuency = newHabit.frecuency;
+    existingHabit.progress = newHabit.progress;
+    existingHabit.reminder = newHabit.reminder;
+    existingHabit.usesTimer = newHabit.usesTimer;
+    notiRepo.agendarNotificaciones(existingHabit,horas);
   }
-  dbRepo.updateHabit(habit);
+    
+  
+
+  dbRepo.updateHabit(existingHabit);
+  print("editado con exito");
 }
 
-
-  void deleteHabitNotifications(Habit habit) {
-
-    notiRepo.deleteNotification(habit);
-
-  }
 
   Future<bool> nameInUse(String name)
   {
@@ -108,9 +118,9 @@ void generateEditHabit(Habit habit,List<DateTime> horas){
 
   void removeExistingTime(time)
   {
-    if(existingHabit != null && existingHabit!.reminder!.horarios.isNotEmpty)
+    if(existingHabit != null && existingHabit!.reminder.horarios.isNotEmpty)
     {
-      existingHabit!.reminder!.horarios.remove(time);
+      existingHabit!.reminder.horarios.remove(time);
       notifyListeners();
     }
     
@@ -133,18 +143,18 @@ void generateEditHabit(Habit habit,List<DateTime> horas){
     return HabitProgress(date: DateTime.now().subtract(Duration(days: 1)), vecesCompletado: 0, isActive: true, startedAt: DateTime.now(), numeroVecesSemana: (frequency == "xPorSemana")
                           ? this.goalPerWeek
                           : 1, daysOfWeekCompleted: [0, 0, 0, 0, 0, 0, 0], timeToCompleteHabit: duration.inMinutes, daysTodoHabit: selectedDays.map((b) => b ? 1 : 0)
-                          .toList(), timesXday: goalPerDay, minutesCompleted: 0);
+                          .toList(), totalCompletions: 0, minutesCompleted: 0);
   }
 
   ReminderSettings reminder()
   {
     
-    if(existingHabit != null && existingHabit!.reminder!.horarios.isNotEmpty)
+    if(existingHabit != null && existingHabit!.reminder.horarios.isNotEmpty)
     {
-      print(existingHabit!.reminder!.horarios);
-      for(int i = 0; i < existingHabit!.reminder!.horarios.length; i ++)
+      print(existingHabit!.reminder.horarios);
+      for(int i = 0; i < existingHabit!.reminder.horarios.length; i ++)
       {
-        selectedTime.add(existingHabit!.reminder!.horarios[i]);
+        selectedTime.add(existingHabit!.reminder.horarios[i]);
       }
     }
     print("selected time " + selectedTime.toString());
@@ -164,6 +174,7 @@ void generateEditHabit(Habit habit,List<DateTime> horas){
 
   void toggleUsesTimer(bool value) {
     usesTimer = value;
+    print("uses timer change "+ usesTimer.toString());
     notifyListeners();
   }
 

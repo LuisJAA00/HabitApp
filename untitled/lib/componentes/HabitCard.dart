@@ -101,7 +101,7 @@ class _HabitcardState extends State<Habitcard> {
         ],
       ),
       child: Opacity(
-        opacity: (widget.habit.lastDateDone.day == DateTime.now().day)
+        opacity: (widget.habit.progress.vecesCompletado == widget.habit.reminder.horarios.length)//(widget.habit.lastDateDone.day == DateTime.now().day)
             ? 0.4
             : 1.0,
         child: SizedBox(
@@ -149,7 +149,7 @@ class _HabitcardState extends State<Habitcard> {
                           Text(
                             (widget.habit.usesTimer)
                                 ? "Minutos hechos: ${widget.habit.minutesCompleted}"
-                                : "Veces completado: ${widget.habit.progress.vecesCompletado}",
+                                : "Acumulado: ${widget.habit.progress.totalCompletions}",
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color.fromARGB(255, 97, 97, 97),
